@@ -9,9 +9,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     if (productId) {
       const product = products.find(product => product.id === productId);
       if (product) {
-        return buildResponse(200, {
-          product
-        })
+        return buildResponse(200, product)
       } else {
         return buildResponse(404, {
           message: 'Product not found'
