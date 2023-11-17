@@ -8,6 +8,6 @@ export const buildResponse = (statusCode: number, body: any, headers = {}) => {
   return {
     statusCode,
     headers: { ...headers, ...defaultHeaders },
-    body: JSON.stringify(body || {}),
+    body: JSON.stringify(body),
   };
 };
