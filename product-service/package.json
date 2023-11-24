@@ -8,6 +8,7 @@
     "build": "tsc",
     "watch": "tsc -w",
     "test": "jest",
+    "test:coverage": "jest --coverage",
     "cdk": "cdk",
     "bootstrap": "npx cdk bootstrap",
     "deploy": "npx cdk deploy",
