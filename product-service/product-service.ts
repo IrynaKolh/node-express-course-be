@@ -18,6 +18,11 @@ const sharedLambdaProps: Partial<NodejsFunctionProps> = {
   runtime: lambda.Runtime.NODEJS_18_X,
   environment: {
     PRODUCT_AWS_REGION: process.env.PRODUCT_AWS_REGION!,
+    PG_HOST: process.env.PG_HOST!,
+    PG_PORT: process.env.PG_PORT!,
+    PG_DATABASE: process.env.PG_DATABASE!,
+    PG_USERNAME: process.env.PG_USERNAME!,
+    PG_PASSWORD: process.env.PG_PASSWORD!,
   }
 };
 
