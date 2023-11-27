@@ -24,19 +24,24 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     const productItems = (await docClient.send(products)).Items;
     const stockItems = (await docClient.send(stocks)).Items;
 
-    const joinedResult = productItems?.map((product) => {
-      const stock = stockItems?.find((stock) => stock.product_id === product.id);
-      const readableResponse = {
-        description: product.description.S,
-        id: product.id.S,
-        price: product.price.N,
-        title: product.title.S,
-        count: stock?.count.N || 0
-      };
-      return readableResponse;
-    });
-
-    return buildResponse(200, joinedResult);
+    if (productItems && stockItems) {
+      const joinedResult = productItems.map((product) => {
+        const stock = stockItems.find((stock) => stock.product_id === product.id);
+        const readableResponse = {
+          description: product.description.S,
+          id: product.id.S,
+          price: product.price.N,
+          title: product.title.S,
+          count: stock?.count.N || 0
+        };
+        return readableResponse;
+      });
+      return buildResponse(200, joinedResult);
+    } else {
+      return buildResponse(404, {
+        message: 'Product not found'
+      })
+    }   
 
   } catch (error: any) {
     return buildResponse(500, {
