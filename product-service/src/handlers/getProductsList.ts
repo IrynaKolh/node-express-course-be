@@ -30,7 +30,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
     if (productItems && stockItems) {
       const joinedResult = productItems.map((product) => {
-        const stock = stockItems.find((stock) => stock.product_id === product.id);
+        const stock = stockItems.find((stock) => stock.product_id['S'] === product.id['S']);
         const readableResponse = {
           description: product.description.S,
           id: product.id.S,
