@@ -34,20 +34,20 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
       id: id,
       description: value.description,
       title: value.title,
-      price: value.price,
+      price: Number(value.price),
     };
 
     const newStock: Stock = {
       product_id: id,
-      count: value.count,
+      count: Number(value.count),
     }
 
     const newItem: NewItem = {
       id: id,
       description: value.description,
       title: value.title,
-      price: value.price,
-      count: value.count,
+      price: Number(value.price),
+      count: Number(value.count),
     }
 
     const newProductPromise = await docClient.send(

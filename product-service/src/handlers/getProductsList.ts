@@ -34,9 +34,9 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
         const readableResponse = {
           description: product.description.S,
           id: product.id.S,
-          price: product.price.N,
+          price: Number(product.price.N),
           title: product.title.S,
-          count: stock?.count.N || 0
+          count: Number(stock?.count.N) || 0
         };
         return readableResponse;
       });
