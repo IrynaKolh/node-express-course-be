@@ -12,6 +12,7 @@ const client = new DynamoDBClient({
 const docClient = DynamoDBDocumentClient.from(client);
 
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+  console.log('handler getProductsList event:', event);
   try {
     const products = new ScanCommand({
       TableName: "ikol-products",
@@ -23,6 +24,9 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
     const productItems = (await docClient.send(products)).Items;
     const stockItems = (await docClient.send(stocks)).Items;
+
+    console.log(productItems)
+    console.log(stockItems)
 
     if (productItems && stockItems) {
       const joinedResult = productItems.map((product) => {

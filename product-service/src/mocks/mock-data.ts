@@ -10,6 +10,8 @@ export interface Stock {
   count: number;
 }
 
+export type NewItem = Product | Omit<Stock, 'product_id'>
+
 export const products: Product[] = [
   {
     title: "Pumpkin cheescake",

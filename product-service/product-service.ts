@@ -6,8 +6,6 @@ import * as apiGateway from '@aws-cdk/aws-apigatewayv2-alpha';
 import { HttpLambdaIntegration } from '@aws-cdk/aws-apigatewayv2-integrations-alpha';
 import * as path from 'path';
 import { AttributeType, Table } from 'aws-cdk-lib/aws-dynamodb';
-
-
 config();
 
 const app = new cdk.App();
@@ -35,7 +33,13 @@ const getProductsById = new NodejsFunction(stack, 'GetProductsByIdLambda', {
   ...sharedLambdaProps,
   functionName: 'getProductsById',
   entry: path.join(__dirname, 'src', 'handlers', 'getProductsById.ts'),
-})
+});
+
+const createProduct = new NodejsFunction(stack, 'CreateProductLambda', {
+  ...sharedLambdaProps,
+  functionName: 'createProduct',
+  entry: path.join(__dirname, 'src', 'handlers', 'createProduct.ts'),
+});
 
 // const productsTable = Table.fromTableName(stack, 'products', process.env.DB_PRODUCTS || 'ikol-products');
 // const stocksTable = Table.fromTableName(stack, 'stock', process.env.DB_STOCKS || 'ikol-stock');
@@ -56,8 +60,10 @@ const stocksTable = new Table(stack, 'stock', {
 
 productsTable.grantReadData(getProductList);
 productsTable.grantReadData(getProductsById);
+productsTable.grantReadWriteData(createProduct);
 stocksTable.grantReadData(getProductList);
 stocksTable.grantReadData(getProductsById);
+stocksTable.grantReadWriteData(createProduct);
 
 const api = new apiGateway.HttpApi(stack, 'ProductApi', {
   corsPreflight: {
@@ -71,6 +77,12 @@ api.addRoutes({
   integration: new HttpLambdaIntegration('GetProductListIntegration', getProductList),
   path: '/products',
   methods: [apiGateway.HttpMethod.GET],
+})
+
+api.addRoutes({
+  integration: new HttpLambdaIntegration('CreateProductIntegration', createProduct),
+  path: '/products',
+  methods: [apiGateway.HttpMethod.POST],
 })
 
 api.addRoutes({
