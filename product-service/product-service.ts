@@ -5,6 +5,8 @@ import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as apiGateway from '@aws-cdk/aws-apigatewayv2-alpha';
 import { HttpLambdaIntegration } from '@aws-cdk/aws-apigatewayv2-integrations-alpha';
 import * as path from 'path';
+import { AttributeType, Table } from 'aws-cdk-lib/aws-dynamodb';
+
 
 config();
 
@@ -18,11 +20,8 @@ const sharedLambdaProps: Partial<NodejsFunctionProps> = {
   runtime: lambda.Runtime.NODEJS_18_X,
   environment: {
     PRODUCT_AWS_REGION: process.env.PRODUCT_AWS_REGION!,
-    PG_HOST: process.env.PG_HOST!,
-    PG_PORT: process.env.PG_PORT!,
-    PG_DATABASE: process.env.PG_DATABASE!,
-    PG_USERNAME: process.env.PG_USERNAME!,
-    PG_PASSWORD: process.env.PG_PASSWORD!,
+    TABLE_PRODUCTS: 'ikol-products',
+    TABLE_STOCKS: 'ikol-stocks',
   }
 };
 
@@ -37,6 +36,28 @@ const getProductsById = new NodejsFunction(stack, 'GetProductsByIdLambda', {
   functionName: 'getProductsById',
   entry: path.join(__dirname, 'src', 'handlers', 'getProductsById.ts'),
 })
+
+// const productsTable = Table.fromTableName(stack, 'products', process.env.DB_PRODUCTS || 'ikol-products');
+// const stocksTable = Table.fromTableName(stack, 'stock', process.env.DB_STOCKS || 'ikol-stock');
+
+const productsTable = new Table(stack, 'products', {
+  tableName: "ikol-products",
+  partitionKey: { name: 'id', type: AttributeType.STRING },
+  sortKey: { name: 'title', type: AttributeType.STRING },
+  removalPolicy: cdk.RemovalPolicy.DESTROY,
+});
+
+const stocksTable = new Table(stack, 'stock', {
+  tableName: "ikol-stocks",
+  partitionKey: { name: 'product_id', type: AttributeType.STRING },
+  sortKey: { name: 'count', type: AttributeType.NUMBER },
+  removalPolicy: cdk.RemovalPolicy.DESTROY,
+});
+
+productsTable.grantReadData(getProductList);
+productsTable.grantReadData(getProductsById);
+stocksTable.grantReadData(getProductList);
+stocksTable.grantReadData(getProductsById);
 
 const api = new apiGateway.HttpApi(stack, 'ProductApi', {
   corsPreflight: {

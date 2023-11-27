@@ -5,7 +5,7 @@ import { products, stocks } from '../mocks/mock-data';
 config();
 
 const client = new DynamoDBClient({
-  region: "us-east-1",
+  region: "us-east-2",
 });
 const docClient = DynamoDBDocumentClient.from(client);
 
