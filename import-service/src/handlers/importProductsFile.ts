@@ -35,7 +35,13 @@ export const handler = async (
     };
 
     const command = new PutObjectCommand(putObjectParams);
-    const url = await presignedUrl(client, command);
+    const copyResult = await client.send(command);
+    console.log('CopyObjectCommand result:', copyResult);
+    const destinationKey = `uploaded/${fileName}`;
+    const url = await presignedUrl(client, new PutObjectCommand({
+      Bucket: bucketName,
+      Key: destinationKey,
+    }));
 
     return buildResponse(200, { url });
   } catch (err: any) {

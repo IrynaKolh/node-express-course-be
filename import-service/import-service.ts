@@ -14,12 +14,6 @@ const stack = new cdk.Stack(app, "ImportServiceStack", {
   env: { region: "us-east-2" },
 });
 
-const corsRule: cdk.aws_s3.CorsRule = {
-  allowedMethods: [cdk.aws_s3.HttpMethods.GET, cdk.aws_s3.HttpMethods.POST, cdk.aws_s3.HttpMethods.PUT, cdk.aws_s3.HttpMethods.DELETE, cdk.aws_s3.HttpMethods.HEAD],
-  allowedOrigins: ['*'],
-  allowedHeaders: ['*'],
-};
-
 const bucket = cdk.aws_s3.Bucket.fromBucketName(stack, 'ImportBucket', 'ikol-import-bucket');
 
 const sharedLambdaProps: Partial<NodejsFunctionProps> = {
@@ -36,15 +30,24 @@ const importProductsFile = new NodejsFunction(stack, 'ImportProductsFileLambda',
   entry: path.join(__dirname, 'src', 'handlers', 'importProductsFile.ts'),
 });
 
-// const policyPutObject = new cdk.aws_iam.PolicyStatement({
-//   actions: ["s3:PutObject"],
-//   resources: [`arn:aws:s3:::import-bucket/uploaded`],
-//   effect: cdk.aws_iam.Effect.ALLOW,
-// });
+const importFileParser = new NodejsFunction(stack, 'importFileParserLambda', {
+  ...sharedLambdaProps,
+  functionName: 'importFileParser',
+  entry: path.join(__dirname, 'src', 'handlers', 'importFileParser.ts'),
+});
 
-// importProductsFile.addToRolePolicy(policyPutObject);
-// bucket.grantRead(new cdk.aws_iam.AccountRootPrincipal());
-// bucket.grantReadWrite(importProductsFile);
+const policyPutObject = new cdk.aws_iam.PolicyStatement({
+  actions: ["s3:PutObject"],
+  resources: [`arn:aws:s3:::ikol-import-bucket/uploaded`],
+  effect: cdk.aws_iam.Effect.ALLOW,
+});
+
+importProductsFile.addToRolePolicy(policyPutObject);
+bucket.grantRead(new cdk.aws_iam.AccountRootPrincipal());
+
+bucket.grantReadWrite(importProductsFile);
+bucket.grantReadWrite(importFileParser);
+bucket.grantDelete(importFileParser);
 
 const api = new apiGateway.HttpApi(stack, 'ImportApi', {
   corsPreflight: {
@@ -60,7 +63,7 @@ api.addRoutes({
   methods: [apiGateway.HttpMethod.GET],
 })
 
-bucket.addEventNotification(cdk.aws_s3.EventType.OBJECT_CREATED, new s3notifications.LambdaDestination(importProductsFile), { prefix: 'uploaded' });
+bucket.addEventNotification(cdk.aws_s3.EventType.OBJECT_CREATED, new s3notifications.LambdaDestination(importFileParser), { prefix: 'uploaded' });
 
 new cdk.CfnOutput(stack, "ImportUrl", {
   value: api.url!,
